@@ -4,6 +4,14 @@ public abstract class Register {
     private static int min;
     private static int max;
 
+    public static void setMin(int min) {
+        Register.min = min;
+    }
+
+    public static void setMax(int max) {
+        Register.max = max;
+    }
+
     public int getValue() {
         return value;
     }

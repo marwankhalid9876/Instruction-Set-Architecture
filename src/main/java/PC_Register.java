@@ -1,6 +1,9 @@
 public class PC_Register extends Register{
 
-    private static final int min = 0;
-    private static final int max = 255;
+    public PC_Register()
+    {
+        setMin(-128);
+        setMax(127);
+    }
 
 }

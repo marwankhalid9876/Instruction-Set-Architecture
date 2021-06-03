@@ -1,10 +1,16 @@
+import java.util.Arrays;
+
 public class StatusRegister {
 
     private Boolean[] flags;
 
     public StatusRegister()
     {
-       flags = new Boolean[8];
+        flags = new Boolean[8];
+        for(int i=0;i<8;i++)
+        {
+            flags[i]=false;
+        }
     }
     public Boolean getZeroFlag() {
         return flags[0];
@@ -38,4 +44,14 @@ public class StatusRegister {
         flags[4]=value;
     }
 
+    @Override
+    public String toString() {
+        return "StatusRegister{" +
+                "ZeroFlag = " + flags[0] +
+                ", SignFlag = "+ flags[1] +
+                ", NegativeFlag = "+ flags[2] +
+                ", OverFlowFlag = " +flags[3] +
+                ", CarryFlag = " +flags[4] +
+                '}';
+    }
 }
