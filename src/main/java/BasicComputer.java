@@ -61,7 +61,7 @@ public class BasicComputer {
         generalPurposeRegisters[r1].setValue(oneByteResult);
     }
     public int setStatusRegisters(int result) {
-        if(result>Byte.MAX_VALUE || result<Byte.MIN_VALUE) {
+        if(result>Byte.MAX_VALUE) {
             statusRegister.setCarryFlag(true);
             result = result & 255;
         }
@@ -84,8 +84,8 @@ public class BasicComputer {
     public static void main(String[] args) {
         BasicComputer basicComputer = new BasicComputer();
         basicComputer.generalPurposeRegisters[0].setValue(10);
-        basicComputer.generalPurposeRegisters[1].setValue(126);
-        basicComputer.multiply(0,1);
+        basicComputer.generalPurposeRegisters[1].setValue(118);
+        basicComputer.add(0,1);
         System.out.println(basicComputer.generalPurposeRegisters[0].getValue());
         System.out.println(basicComputer.statusRegister.toString());
     }

@@ -1,26 +1,18 @@
 public abstract class Register {
 
-    private int value;
-    private static int min;
-    private static int max;
-
-    public static void setMin(int min) {
-        Register.min = min;
-    }
-
-    public static void setMax(int max) {
-        Register.max = max;
-    }
+    private byte value;
+    protected static int min;
+    protected static int max;
 
     public int getValue() {
-        return value;
+        if(this.max == 255)
+            return value & 0xFF;
+        else
+            return value;
     }
 
     public void setValue(int value) {
-        if(value>this.max || value<this.min)
-            System.out.println("Value out of range");
-        else
-            this.value=value;
+        this.value= (byte) value;
     }
 
     public static int getMin() {

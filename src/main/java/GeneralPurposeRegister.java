@@ -1,8 +1,8 @@
 public class GeneralPurposeRegister extends Register{
     public GeneralPurposeRegister()
     {
-        setMin(-128);
-        setMax(127);
+       super.min= -128;
+        super.max= 127;
     }
 
 }
