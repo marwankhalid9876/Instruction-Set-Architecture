@@ -1,11 +1,11 @@
 public class I_Instruction extends InstructionWord{
-    private int immediate;
+    private byte immediate;
 
     public int getImmediate() {
         return immediate;
     }
 
-    public void setImmediate(int immediate) {
+    public void setImmediate(byte immediate) {
         if(immediate>31 || immediate<-32)
             System.out.println("Invalid immediate value!");
         else

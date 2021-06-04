@@ -1,16 +1,16 @@
 public class InstructionWord {
 
-    private int opcode;
-    private int R1;
+    private byte opcode;
+    private byte R1;
 
-    public void setOpcode(int opcode) {
+    public void setOpcode(byte opcode) {
         if(opcode>11 || opcode<0)
             System.out.println("Invalid Opcode");
         else
             this.opcode = opcode;
     }
 
-    public void setR1(int r1) {
+    public void setR1(byte r1) {
         if(R1>63 || R1<0)
             System.out.println("Invalid Register R1 number");
         else

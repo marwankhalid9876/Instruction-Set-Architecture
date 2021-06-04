@@ -3,7 +3,7 @@ public class DataMemory {
     private static MemoryWord[] DataMemoryArray;
 
     private DataMemory(){
-        this.DataMemoryArray = new MemoryWord[2048];
+        DataMemoryArray = new MemoryWord[2048];
         for(int i=0; i<2048; i++)
             DataMemoryArray[i]=new MemoryWord();
     }
