@@ -25,13 +25,13 @@ public class BasicComputer {
         int result = valueOfR1 + valueOfR2;
         int oneByteResult = setStatusRegisters(result);
 
-        if (valueOfR1 << 7 == valueOfR2 << 7)
-            if (valueOfR1 << 7 != oneByteResult << 7)
-                statusRegister.setOverflowFlag(false);
-            else
+        if (valueOfR1 >> 7 == valueOfR2 >> 7)
+            if (valueOfR1 >> 7 != oneByteResult >> 7)
                 statusRegister.setOverflowFlag(true);
+            else
+                statusRegister.setOverflowFlag(false);
         else
-            statusRegister.setOverflowFlag(true);
+            statusRegister.setOverflowFlag(false);
 
         statusRegister.setSignFlag(statusRegister.getNegativeFlag() ^ statusRegister.getOverflowFlag());
         generalPurposeRegisters[r1].setValue(oneByteResult);
@@ -43,13 +43,13 @@ public class BasicComputer {
         int result = valueOfR1 - valueOfR2;
         int oneByteResult = setStatusRegisters(result);
 
-        if (valueOfR1 << 7 == valueOfR2 << 7)
-            if (valueOfR1 << 7 != oneByteResult << 7)
-                statusRegister.setOverflowFlag(false);
-            else
+        if (valueOfR1 >> 7 != valueOfR2 >> 7)
+            if (valueOfR2 >> 7 == oneByteResult >> 7)
                 statusRegister.setOverflowFlag(true);
+            else
+                statusRegister.setOverflowFlag(false);
         else
-            statusRegister.setOverflowFlag(true);
+            statusRegister.setOverflowFlag(false);
 
         statusRegister.setSignFlag(statusRegister.getNegativeFlag() ^ statusRegister.getOverflowFlag());
         generalPurposeRegisters[r1].setValue(oneByteResult);
