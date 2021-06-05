@@ -110,12 +110,11 @@ public class BasicComputer {
         memoryArray[immediateUnsigned].setValue(R1Value);
     }
 
-    public void loadImmediate(byte R1, byte immediate) {
-        generalPurposeRegisters[R1].setValue(immediate);
+    public void loadImmediate(byte r1Address, byte immediate) {
+        generalPurposeRegisters[r1Address].setValue(immediate);
     }
 
-    public void branchIfEqualZero(byte R1, byte immediate){
-        int r1Value = generalPurposeRegisters[R1].getValue();
+    public void branchIfEqualZero(byte r1Value, byte immediate){
         if(r1Value == 0){
             pc.setValue(pc.getValue() + immediate);
         }
