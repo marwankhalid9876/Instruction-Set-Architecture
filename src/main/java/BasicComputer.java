@@ -1,5 +1,6 @@
 import jdk.swing.interop.SwingInterOpUtils;
 
+import javax.swing.*;
 import javax.xml.crypto.Data;
 
 public class BasicComputer {
@@ -18,6 +19,7 @@ public class BasicComputer {
         for (int i = 0; i < 64; i++)
             generalPurposeRegisters[i] = new GeneralPurposeRegister();
     }
+
 
     public void add(byte r1, byte r2) {
         int valueOfR1 = generalPurposeRegisters[r1].getValue();
@@ -96,7 +98,7 @@ public class BasicComputer {
         generalPurposeRegisters[R1].setValue(targetValue);
     }
 
-    public void storeByte(byte R1, byte immediate) {
+    public void storeByte(byte R1Value, byte immediate) {
         //0,1,2,3,4,5,...31  ---> 0,1,2,3,4,5...31
         //-32,-31,-30,-29 --->32,33,34,35,....63
         int immediateUnsigned = 0;
@@ -105,8 +107,7 @@ public class BasicComputer {
         else
             immediateUnsigned = immediate;
         MemoryWord[] memoryArray = dataMemory.getDataMemoryArray();
-        int targetValue = generalPurposeRegisters[R1].getValue();
-        memoryArray[immediateUnsigned].setValue(targetValue);
+        memoryArray[immediateUnsigned].setValue(R1Value);
     }
 
     public void loadImmediate(byte R1, byte immediate) {
@@ -120,8 +121,32 @@ public class BasicComputer {
         }
     }
 
+    public InstructionWord instructionFetch(){
+        int nextAddress = pc.getValue();
+        InstructionWord[] instructionMemoryArray = instructionMemory.getInstructionMemoryArray();
+        return instructionMemoryArray[nextAddress];//instruction to be fetched
+    }
 
-    public void execute(byte opcode, byte R1, byte R2OrImmediate) {
+    public byte[] instructionDecode(InstructionWord instruction){
+        pc.setValue(pc.getValue()+1);//word-addressable
+        byte[] instructionFields = new byte[4];
+        //instructionFields = [opcode, R1, R1Value, R2Value(or immediate)]
+        //to be used in execution
+        instructionFields[0]=(byte)instruction.getOpcode();
+        byte R1 =(byte)instruction.getR1();
+        instructionFields[1]= R1;
+        instructionFields[2]=(byte)generalPurposeRegisters[R1].getValue();
+        byte R2OrImmediate;
+        if(instruction instanceof I_Instruction)
+            R2OrImmediate =(byte)((I_Instruction) instruction).getImmediate();
+        else
+            R2OrImmediate=(byte)((R_Instruction) instruction).getR2();
+        instructionFields[3]=R2OrImmediate;
+        return instructionFields;
+    }
+
+
+    public void execute(byte opcode, byte R1, byte R1Value, byte R2OrImmediateValue) {
         switch (opcode) {
             case 0:
                 break;
@@ -146,10 +171,10 @@ public class BasicComputer {
             case 10:
                 break;
             case 11:
-                loadByte(R1, R2OrImmediate);
+                loadByte(R1, R2OrImmediateValue);
                 break;
             case 12:
-                storeByte(R1, R2OrImmediate);
+                storeByte(R1Value, R2OrImmediateValue);
                 break;
             default:
                 System.out.println("Invalid Opcode!");

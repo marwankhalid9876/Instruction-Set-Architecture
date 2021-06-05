@@ -7,8 +7,10 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="CA" />
-        <module name="Instruction-Set-Architecture" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Instruction-Set-Architecture" target="16" />
+    </bytecodeTargetLevel>
   </component>
 </project>
