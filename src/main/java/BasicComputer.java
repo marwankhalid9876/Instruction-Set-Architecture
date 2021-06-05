@@ -82,29 +82,42 @@ public class BasicComputer {
 
         return result;
     }
-    public void loadByte (byte R1, byte immediate){
+
+    public void loadByte(byte R1, byte immediate) {
         //0,1,2,3,4,5,...31  ---> 0,1,2,3,4,5...31
         //-32,-31,-30,-29 --->32,33,34,35,....63
         int immediateUnsigned = 0;
-        if(immediate<0)
-            immediateUnsigned = ((immediate & 0xff)) -192;
+        if (immediate < 0)
+            immediateUnsigned = ((immediate & 0xff)) - 192;
         else
             immediateUnsigned = immediate;
         MemoryWord[] memoryArray = dataMemory.getDataMemoryArray();
         byte targetValue = memoryArray[immediateUnsigned].getValue();
         generalPurposeRegisters[R1].setValue(targetValue);
     }
-    public void storeByte ( byte R1, byte immediate){
+
+    public void storeByte(byte R1, byte immediate) {
         //0,1,2,3,4,5,...31  ---> 0,1,2,3,4,5...31
         //-32,-31,-30,-29 --->32,33,34,35,....63
         int immediateUnsigned = 0;
-        if(immediate<0)
-            immediateUnsigned = ((immediate & 0xff)) -192;
+        if (immediate < 0)
+            immediateUnsigned = ((immediate & 0xff)) - 192;
         else
             immediateUnsigned = immediate;
         MemoryWord[] memoryArray = dataMemory.getDataMemoryArray();
         int targetValue = generalPurposeRegisters[R1].getValue();
         memoryArray[immediateUnsigned].setValue(targetValue);
+    }
+
+    public void loadImmediate(byte R1, byte immediate) {
+        generalPurposeRegisters[R1].setValue(immediate);
+    }
+
+    public void branchIfEqualZero(byte R1, byte immediate){
+        int r1Value = generalPurposeRegisters[R1].getValue();
+        if(r1Value == 0){
+            pc.setValue(pc.getValue() + immediate);
+        }
     }
 
 
@@ -133,7 +146,7 @@ public class BasicComputer {
             case 10:
                 break;
             case 11:
-                loadByte(R1,  R2OrImmediate);
+                loadByte(R1, R2OrImmediate);
                 break;
             case 12:
                 storeByte(R1, R2OrImmediate);
@@ -145,24 +158,24 @@ public class BasicComputer {
     }
 
 
-
-    public static void main (String[]args){
-//        BasicComputer basicComputer = new BasicComputer();
+    public static void main(String[] args) {
+        BasicComputer basicComputer = new BasicComputer();
 //        basicComputer.generalPurposeRegisters[0].setValue(10);
 //        basicComputer.generalPurposeRegisters[1].setValue(118);
-////      basicComputer.add(0,1);
+//        basicComputer.add((byte) 0, (byte) 1);
 //        System.out.println(basicComputer.generalPurposeRegisters[0].getValue());
 //        System.out.println(basicComputer.statusRegister.toString());
-          byte aByte = -31;
+        //   byte aByte = -31;
 
-        int immediateUnsigned = 0;
-        if(aByte<0)
-            immediateUnsigned = ((aByte & 0xff)) -192;
-        else
-            immediateUnsigned = aByte;
+        // int immediateUnsigned = 0;
+        // if(aByte<0)
+        //     immediateUnsigned = ((aByte & 0xff)) -192;
+        // else
+        //     immediateUnsigned = aByte;
 
-        System.out.println(immediateUnsigned);
-        }
+        // System.out.println(immediateUnsigned);
+        // }
 
 
     }
+}
