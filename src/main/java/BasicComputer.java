@@ -119,6 +119,48 @@ public class BasicComputer {
             pc.setValue(pc.getValue() + immediate);
         }
     }
+    public void shiftLeftCircular(byte r1,byte immediate){
+        byte rVal=(byte)generalPurposeRegisters[r1].getValue() ;
+        int res=rVal<<immediate;
+        int helper=(rVal<<24)&0XFF000000;
+        helper=Integer.rotateLeft(helper,immediate);
+        res=res|helper;
+        res=res&0x00FF;
+
+        if (res < 0)
+            statusRegister.setNegativeFlag(true);
+        else
+            statusRegister.setNegativeFlag(false);
+        if (res == 0)
+            statusRegister.setZeroFlag(true);
+        else
+            statusRegister.setZeroFlag(false);
+        generalPurposeRegisters[r1].setValue(res);
+
+
+    }
+    public void shiftRightCircular(byte r1,byte immediate){
+        byte r1Value=(byte)generalPurposeRegisters[r1].getValue() ;
+        int res=r1Value&0x000000FF;
+        System.out.println(Integer.toBinaryString(res));
+        int helper=Integer.rotateRight(res,immediate);
+        System.out.println(Integer.toBinaryString(helper));
+        res=res<<(24-immediate);
+        System.out.println(Integer.toBinaryString(res));
+        res=res|helper;
+        res=res>>24;
+        res=res&0x000000FF;
+        if (res < 0)
+            statusRegister.setNegativeFlag(true);
+        else
+            statusRegister.setNegativeFlag(false);
+        if (res == 0)
+            statusRegister.setZeroFlag(true);
+        else
+            statusRegister.setZeroFlag(false);
+        generalPurposeRegisters[r1].setValue(res);
+
+    }
 
     public InstructionWord instructionFetch(){
         int nextAddress = pc.getValue();
@@ -166,8 +208,10 @@ public class BasicComputer {
             case 8:
                 break;
             case 9:
+                shiftLeftCircular(R1,R2OrImmediateValue);
                 break;
             case 10:
+                shiftRightCircular(R1,R2OrImmediateValue);
                 break;
             case 11:
                 loadByte(R1, R2OrImmediateValue);
@@ -183,7 +227,53 @@ public class BasicComputer {
 
 
     public static void main(String[] args) {
-        BasicComputer basicComputer = new BasicComputer();
+       // BasicComputer basicComputer = new BasicComputer();
+
+        //testing right circular
+        int i=2;
+        byte r=(byte)(150);
+        int res=r&0x000000FF;
+        System.out.println(Integer.toBinaryString(res));
+        int helper=Integer.rotateRight(res,i);
+        System.out.println(Integer.toBinaryString(helper));
+        res=res<<(24-i);
+        System.out.println(Integer.toBinaryString(res));
+        res=res|helper;
+        res=res>>24;
+        res=res&0x000000FF;
+
+        System.out.println(Integer.toBinaryString(res));
+
+        //int helper=(r<<24)&0XFF000000;
+        //int helper=Integer.rotateRight(helper,i);
+        /*res=res|helper;
+        res=res&0x00FF;*/
+        //System.out.println(Integer.toBinaryString(r));
+        /*
+        System.out.println(Integer.toBinaryString(res));
+
+        System.out.println(Integer.toBinaryString(helper));
+
+        System.out.println(Integer.toBinaryString(helper));
+
+        System.out.println(Integer.toBinaryString(res));
+
+        System.out.println(Integer.toBinaryString(res));
+*/
+
+        /*System.out.println(Integer.toBinaryString(Integer.rotateRight(13,3)));
+
+        byte i=2;
+        int res=r&0XFF;
+
+
+
+        res = (int)(res<<i | res >> (32-i));
+        if (res > Byte.MAX_VALUE) {
+            res=res & 255;
+        }
+        System.out.println(Integer.toBinaryString(res));*/
+
 //        basicComputer.generalPurposeRegisters[0].setValue(10);
 //        basicComputer.generalPurposeRegisters[1].setValue(118);
 //        basicComputer.add((byte) 0, (byte) 1);
