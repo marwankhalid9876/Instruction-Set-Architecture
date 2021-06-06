@@ -8,7 +8,7 @@ public class DataMemory {
     public String toString() {
         String res = "";
         for(int i=0; i<DataMemoryArray.length; i++)
-            res += "Block " + i + DataMemoryArray[i] + "\n";
+            res += "Block " + i + ": "+ DataMemoryArray[i] + "\n";
         return res;
     }
 

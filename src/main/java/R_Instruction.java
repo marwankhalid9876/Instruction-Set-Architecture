@@ -16,4 +16,7 @@ public class R_Instruction extends InstructionWord{
         else
             R2 = r2;
     }
+
+    public static void main(String[] args) {
+    }
 }

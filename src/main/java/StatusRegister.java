@@ -11,6 +11,7 @@ public class StatusRegister {
         {
             flags[i]=false;
         }
+        setZeroFlag(true);
     }
 
 

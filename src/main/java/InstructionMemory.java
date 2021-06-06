@@ -13,7 +13,7 @@ public class InstructionMemory {
     {
         String res = "";
         for(int i=0; i<instructionMemoryArray.length; i++)
-            res += "Block " + i + instructionMemoryArray[i] + "\n";
+            res += "Block " + i + ": " + instructionMemoryArray[i] + "\n";
         return res;
     }
 

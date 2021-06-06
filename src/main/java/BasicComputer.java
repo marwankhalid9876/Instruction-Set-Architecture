@@ -2,7 +2,10 @@ import jdk.swing.interop.SwingInterOpUtils;
 
 import javax.swing.*;
 import javax.xml.crypto.Data;
+import java.io.*;
 import java.util.Arrays;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 public class BasicComputer {
     private InstructionMemory instructionMemory;
@@ -26,45 +29,51 @@ public class BasicComputer {
         generalPurposeRegisters = new GeneralPurposeRegister[64];
         for (int i = 0; i < 64; i++)
             generalPurposeRegisters[i] = new GeneralPurposeRegister();
-        cycle=0;
+        cycle=1;
     }
 
 
     public void pipeline(int numberOfCycles){
         while (cycle<=numberOfCycles)
         {
-           cycle++;
-           System.out.println("Clock cycle number: " + cycle);
-
+            System.out.println("Clock cycle number: " + cycle);
             if(cycle<numberOfCycles-1)
             {
+               if(cycle!=1)
+               {
+                   System.out.println("PC register was updated from " + pc.getValue() + " to " + (pc.getValue()+1));
+                   pc.setValue(pc.getValue()+1);//word-addressable
+               }
+                System.out.println("Instruction to be fetched: Instruction " + cycle);
                 newFetched = instructionFetch();
-                System.out.println("Instruction to be fetched: " + cycle);
             }
             else
                 newFetched=null;
 
+           if(oldDecoded!=null)
+           {
+               System.out.println("Instruction to be executed: Instruction " + (cycle-2));
+               execute(oldDecoded[0],oldDecoded[1],oldDecoded[2],oldDecoded[3]);
+           }
+
             if(oldFetched!=null)
             {
+                System.out.println("Instruction to be decoded: Instruction " + (cycle-1));
                 newDecoded = instructionDecode(oldFetched);
-                System.out.println("Instruction to be decoded: " + (cycle-1));
             }
             else
                 newDecoded=null;
-
-           if(oldDecoded!=null)
-           {
-               execute(oldDecoded[0],oldDecoded[1],oldDecoded[2],oldDecoded[3]);
-               System.out.println("Instruction to be executed: " + (cycle-2));
-           }
            oldFetched=newFetched;
            oldDecoded=newDecoded;
+           cycle++;
+
+
         }
         System.out.println("Content of PC register: " + pc.toString());
         System.out.println("Content of Status registers: " + statusRegister.toString());
         System.out.println("Content of general purpose registers: ");
         for(int i=0; i<generalPurposeRegisters.length; i++)
-            System.out.println("Register " + (i+1) + ": " + generalPurposeRegisters[i]);
+            System.out.println("Register " + (i) + ": " + generalPurposeRegisters[i]);
 
         System.out.println("Content of data memory: ");
         System.out.println(dataMemory);
@@ -155,8 +164,8 @@ public class BasicComputer {
             immediateUnsigned = immediate;
 
         MemoryWord[] memoryArray = dataMemory.getDataMemoryArray();
-        System.out.println("Memory block in address: " + immediate+
-                " was updated from " + memoryArray[immediate] + " to " + R1Value);
+        System.out.println("Memory block in address: " + immediateUnsigned+
+                " was updated from " + memoryArray[immediateUnsigned] + " to " + R1Value);
         memoryArray[immediateUnsigned].setValue(R1Value);
     }
 
@@ -233,12 +242,10 @@ public class BasicComputer {
     public InstructionWord instructionFetch(){
         int nextAddress = pc.getValue();
         InstructionWord[] instructionMemoryArray = instructionMemory.getInstructionMemoryArray();
-        System.out.println("PC register was updated from " + pc.getValue() + "to " + (pc.getValue()+1));
         return instructionMemoryArray[nextAddress];//instruction to be fetched
     }
 
     public byte[] instructionDecode(InstructionWord instruction){
-        pc.setValue(pc.getValue()+1);//word-addressable
         byte[] instructionFields = new byte[4];
         //instructionFields = [opcode, R1, R1Value, R2Value(or immediate)]
         //to be used in execution
@@ -247,10 +254,14 @@ public class BasicComputer {
         instructionFields[1]= R1;
         instructionFields[2]=(byte)generalPurposeRegisters[R1].getValue();
         byte R2OrImmediate;
+
         if(instruction instanceof I_Instruction)
             R2OrImmediate =(byte)((I_Instruction) instruction).getImmediate();
         else
-            R2OrImmediate=(byte)((R_Instruction) instruction).getR2();
+        {
+            byte R2 =(byte)((R_Instruction) instruction).getR2();
+            R2OrImmediate=(byte)generalPurposeRegisters[R2].getValue();
+        }
         instructionFields[3]=R2OrImmediate;
         return instructionFields;
     }
@@ -302,15 +313,148 @@ public class BasicComputer {
                 System.out.println("Invalid Opcode!");
         }
         if(R1Value!=generalPurposeRegisters[R1].getValue())
-            System.out.println("Register " + R1 + " was updated from " + R1Value + " to" + generalPurposeRegisters[R1].getValue());
+            System.out.println("Register " + R1 + " was updated from " + R1Value + " to " + generalPurposeRegisters[R1].getValue());
 
         if(Arrays.equals(statusRegister.getFlags(), statusRegisterBefore))
             System.out.println("Status Register was updated from " + Arrays.toString(statusRegisterBefore) +
-                    " to" + Arrays.toString(statusRegister.getFlags()));
+                    " to " + Arrays.toString(statusRegister.getFlags()));
     }
 
 
+    public int parse(String path)
+    {
+        int numberOfInstructions=0;
+        try {
+            File file = new File(path);
+            FileReader fr;
+
+            fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr);
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                Vector<String> lineTokenizer = new Vector<>();
+                StringTokenizer st = new StringTokenizer(line," ");
+                // now I have each line in a vector
+                InstructionWord instruction = null;
+                String R1;
+                String R2OrImmediate;
+                while(st.hasMoreTokens())
+                    lineTokenizer.add(st.nextToken());
+                switch(lineTokenizer.get(0)) {
+                    case "ADD":
+                        instruction = new R_Instruction();
+                        instruction.setOpcode((byte)0);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2).substring(1);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((R_Instruction)instruction).setR2(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "SUB":
+                        instruction = new R_Instruction();
+                        instruction.setOpcode((byte)1);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2).substring(1);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((R_Instruction)instruction).setR2(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "MUL":
+                        instruction = new R_Instruction();
+                        instruction.setOpcode((byte)2);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2).substring(1);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((R_Instruction)instruction).setR2(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "LDI":
+                        instruction = new I_Instruction();
+                        instruction.setOpcode((byte)3);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((I_Instruction)instruction).setImmediate(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "BEQZ":
+                        instruction = new I_Instruction();
+                        instruction.setOpcode((byte)4);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((I_Instruction)instruction).setImmediate(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "AND":
+                        instruction = new R_Instruction();
+                        instruction.setOpcode((byte)5);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2).substring(1);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((R_Instruction)instruction).setR2(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "OR":
+                        instruction = new R_Instruction();
+                        instruction.setOpcode((byte)6);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2).substring(1);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((R_Instruction)instruction).setR2(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "JR":
+                        instruction = new R_Instruction();
+                        instruction.setOpcode((byte)7);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2).substring(1);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((R_Instruction)instruction).setR2(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "SLC":
+                        instruction = new I_Instruction();
+                        instruction.setOpcode((byte)8);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((I_Instruction)instruction).setImmediate(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "SRC":
+                        instruction = new I_Instruction();
+                        instruction.setOpcode((byte)9);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((I_Instruction)instruction).setImmediate(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "LB":
+                        instruction = new I_Instruction();
+                        instruction.setOpcode((byte)10);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((I_Instruction)instruction).setImmediate(Byte.parseByte(R2OrImmediate));
+                        break;
+                    case "SB":
+                        instruction = new I_Instruction();
+                        instruction.setOpcode((byte)11);
+                        R1 = lineTokenizer.get(1).substring(1);
+                        R2OrImmediate = lineTokenizer.get(2);
+                        instruction.setR1(Byte.parseByte(R1));
+                        ((I_Instruction)instruction).setImmediate(Byte.parseByte(R2OrImmediate));
+                        break;
+                }
+
+                instructionMemory.getInstructionMemoryArray()[numberOfInstructions]=instruction;//add it to instruction memory
+                numberOfInstructions++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(numberOfInstructions==0)
+            return -1;
+        return 3+((numberOfInstructions-1)*1);
+    }
+
     public static void main(String[] args) {
 
+        BasicComputer basicComputer = new BasicComputer();
+        int numberOfCycles = basicComputer.parse("Program 1.txt");
+        basicComputer.pipeline(numberOfCycles);
     }
 }
