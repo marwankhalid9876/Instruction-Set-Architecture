@@ -39,11 +39,7 @@ public class BasicComputer {
             System.out.println("Clock cycle number: " + cycle);
             if(cycle<numberOfCycles-1)
             {
-               if(cycle!=1)
-               {
-                   System.out.println("PC register was updated from " + pc.getValue() + " to " + (pc.getValue()+1));
-                   pc.setValue(pc.getValue()+1);//word-addressable
-               }
+
                 System.out.println("Instruction to be fetched: Instruction " + cycle);
                 newFetched = instructionFetch();
             }
@@ -66,9 +62,11 @@ public class BasicComputer {
            oldFetched=newFetched;
            oldDecoded=newDecoded;
            cycle++;
-
+            System.out.println("--------------");
 
         }
+        System.out.println("PROGRAM EXECUTION DONE!");
+        System.out.println("======================================");
         System.out.println("Content of PC register: " + pc.toString());
         System.out.println("Content of Status registers: " + statusRegister.toString());
         System.out.println("Content of general purpose registers: ");
@@ -246,6 +244,9 @@ public class BasicComputer {
     }
 
     public byte[] instructionDecode(InstructionWord instruction){
+
+        System.out.println("PC register was updated from " + pc.getValue() + " to " + (pc.getValue()+1));
+        pc.setValue(pc.getValue()+1);//word-addressable
         byte[] instructionFields = new byte[4];
         //instructionFields = [opcode, R1, R1Value, R2Value(or immediate)]
         //to be used in execution

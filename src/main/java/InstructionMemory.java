@@ -13,7 +13,14 @@ public class InstructionMemory {
     {
         String res = "";
         for(int i=0; i<instructionMemoryArray.length; i++)
-            res += "Block " + i + ": " + instructionMemoryArray[i] + "\n";
+        {
+
+            if(!(instructionMemoryArray[i] instanceof I_Instruction) && !(instructionMemoryArray[i] instanceof R_Instruction))
+                res+= "Block " + i + ": " + "null" + "\n";
+            else
+                res += "Block " + i + ": " + instructionMemoryArray[i] + "\n";
+        }
+
         return res;
     }
 
