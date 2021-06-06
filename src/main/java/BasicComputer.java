@@ -142,11 +142,8 @@ public class BasicComputer {
     public void shiftRightCircular(byte r1,byte immediate){
         byte r1Value=(byte)generalPurposeRegisters[r1].getValue() ;
         int res=r1Value&0x000000FF;
-        System.out.println(Integer.toBinaryString(res));
         int helper=Integer.rotateRight(res,immediate);
-        System.out.println(Integer.toBinaryString(helper));
         res=res<<(24-immediate);
-        System.out.println(Integer.toBinaryString(res));
         res=res|helper;
         res=res>>24;
         res=res&0x000000FF;
