@@ -187,6 +187,30 @@ public class BasicComputer {
         return instructionFields;
     }
 
+    public void and(int r1,int r2){
+        int valueOfR1=generalPurposeRegisters[r1].getValue();
+        int valueOfR2=generalPurposeRegisters[r2].getValue();
+        int result=valueOfR1&valueOfR2;
+        int oneByteResult=setStatusRegisters(result);
+        generalPurposeRegisters[r1].setValue(oneByteResult);
+    }
+    public void or(int r1,int r2){
+        int valueOfR1=generalPurposeRegisters[r1].getValue();
+        int valueOfR2=generalPurposeRegisters[r2].getValue();
+        int result=valueOfR1|valueOfR2;
+        int oneByteResult=setStatusRegisters(result);
+        generalPurposeRegisters[r1].setValue(oneByteResult);
+    }
+    public void jumpRegister(int r1,int r2){
+        int valueOfR1=generalPurposeRegisters[r1].getValue();
+        int valueOfR2=generalPurposeRegisters[r2].getValue();
+        String binaryR1=Integer.toBinaryString(valueOfR1);
+        String binaryR2=Integer.toBinaryString(valueOfR2);
+        String stringRes=binaryR1+binaryR2;
+        int result=Integer.parseInt(stringRes, 2);
+        pc.setValue(result);
+    }
+
 
     public void execute(byte opcode, byte R1, byte R1Value, byte R2OrImmediateValue) {
         switch (opcode) {
