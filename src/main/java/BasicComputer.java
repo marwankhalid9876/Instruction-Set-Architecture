@@ -122,10 +122,13 @@ public class BasicComputer {
     public void shiftLeftCircular(byte r1,byte immediate){
         byte rVal=(byte)generalPurposeRegisters[r1].getValue() ;
         int res=rVal<<immediate;
+        //helper is the same rVal but in the first 8 bits of 32 bits of int to be able to circular shift them
         int helper=(rVal<<24)&0XFF000000;
         helper=Integer.rotateLeft(helper,immediate);
+        //here we should make ( Number being shifted OR bits that is circular shifted)
         res=res|helper;
-        res=res&0x00FF;
+
+        res=res&0x000000FF;
 
         if (res < 0)
             statusRegister.setNegativeFlag(true);
@@ -142,6 +145,7 @@ public class BasicComputer {
     public void shiftRightCircular(byte r1,byte immediate){
         byte r1Value=(byte)generalPurposeRegisters[r1].getValue() ;
         int res=r1Value&0x000000FF;
+        //helper will hold the values of right circular shifted bits at the left most bits of the 32 bits of int
         int helper=Integer.rotateRight(res,immediate);
         res=res<<(24-immediate);
         res=res|helper;
@@ -227,6 +231,11 @@ public class BasicComputer {
        // BasicComputer basicComputer = new BasicComputer();
 
         //testing right circular
+        byte x=(byte) 150;
+        //int xx=x;
+        //System.out.println(Integer.toBinaryString(xx));
+
+        /*
         int i=2;
         byte r=(byte)(150);
         int res=r&0x000000FF;
@@ -239,7 +248,7 @@ public class BasicComputer {
         res=res>>24;
         res=res&0x000000FF;
 
-        System.out.println(Integer.toBinaryString(res));
+        System.out.println(Integer.toBinaryString(res));*/
 
         //int helper=(r<<24)&0XFF000000;
         //int helper=Integer.rotateRight(helper,i);
