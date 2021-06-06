@@ -37,14 +37,6 @@ public class BasicComputer {
         while (cycle<=numberOfCycles)
         {
             System.out.println("Clock cycle number: " + cycle);
-            if(cycle<numberOfCycles-1)
-            {
-
-                System.out.println("Instruction to be fetched: Instruction " + cycle);
-                newFetched = instructionFetch();
-            }
-            else
-                newFetched=null;
 
            if(oldDecoded!=null)
            {
@@ -59,6 +51,15 @@ public class BasicComputer {
             }
             else
                 newDecoded=null;
+
+            if(cycle<numberOfCycles-1)
+            {
+
+                System.out.println("Instruction to be fetched: Instruction " + cycle);
+                newFetched = instructionFetch();
+            }
+            else
+                newFetched=null;
            oldFetched=newFetched;
            oldDecoded=newDecoded;
            cycle++;
