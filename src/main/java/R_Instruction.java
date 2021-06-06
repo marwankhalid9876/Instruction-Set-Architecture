@@ -1,6 +1,11 @@
 public class R_Instruction extends InstructionWord{
     private int R2;
 
+    public String toString(){
+        return super.toString()  +
+                "R2=" + R2 +
+                '}';
+    }
     public int getR2() {
         return R2;
     }

@@ -3,6 +3,13 @@ public class InstructionWord {
     private byte opcode;
     private byte R1;
 
+    @Override
+    public String toString() {
+        return "InstructionWord{" +
+                "opcode=" + opcode +
+                ", R1=" + R1;
+    }
+
     public void setOpcode(byte opcode) {
         if(opcode>11 || opcode<0)
             System.out.println("Invalid Opcode");

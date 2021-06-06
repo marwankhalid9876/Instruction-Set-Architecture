@@ -12,6 +12,12 @@ public class StatusRegister {
             flags[i]=false;
         }
     }
+
+
+    public Boolean[] getFlags() {
+        return flags;
+    }
+
     public Boolean getZeroFlag() {
         return flags[0];
     }

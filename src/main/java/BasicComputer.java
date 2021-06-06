@@ -2,6 +2,7 @@ import jdk.swing.interop.SwingInterOpUtils;
 
 import javax.swing.*;
 import javax.xml.crypto.Data;
+import java.util.Arrays;
 
 public class BasicComputer {
     private InstructionMemory instructionMemory;
@@ -9,6 +10,13 @@ public class BasicComputer {
     private PC_Register pc;
     private StatusRegister statusRegister;
     private GeneralPurposeRegister[] generalPurposeRegisters;
+    private int cycle;
+    private InstructionWord oldFetched;
+    private InstructionWord newFetched;
+    private byte[] oldDecoded;
+    private byte[] newDecoded;
+
+
 
     public BasicComputer() {
         instructionMemory = InstructionMemory.getInstance();
@@ -18,12 +26,54 @@ public class BasicComputer {
         generalPurposeRegisters = new GeneralPurposeRegister[64];
         for (int i = 0; i < 64; i++)
             generalPurposeRegisters[i] = new GeneralPurposeRegister();
+        cycle=0;
     }
 
 
-    public void add(byte r1, byte r2) {
-        int valueOfR1 = generalPurposeRegisters[r1].getValue();
-        int valueOfR2 = generalPurposeRegisters[r2].getValue();
+    public void pipeline(int numberOfCycles){
+        while (cycle<=numberOfCycles)
+        {
+           cycle++;
+           System.out.println("Clock cycle number: " + cycle);
+
+            if(cycle<numberOfCycles-1)
+            {
+                newFetched = instructionFetch();
+                System.out.println("Instruction to be fetched: " + cycle);
+            }
+            else
+                newFetched=null;
+
+            if(oldFetched!=null)
+            {
+                newDecoded = instructionDecode(oldFetched);
+                System.out.println("Instruction to be decoded: " + (cycle-1));
+            }
+            else
+                newDecoded=null;
+
+           if(oldDecoded!=null)
+           {
+               execute(oldDecoded[0],oldDecoded[1],oldDecoded[2],oldDecoded[3]);
+               System.out.println("Instruction to be executed: " + (cycle-2));
+           }
+           oldFetched=newFetched;
+           oldDecoded=newDecoded;
+        }
+        System.out.println("Content of PC register: " + pc.toString());
+        System.out.println("Content of Status registers: " + statusRegister.toString());
+        System.out.println("Content of general purpose registers: ");
+        for(int i=0; i<generalPurposeRegisters.length; i++)
+            System.out.println("Register " + (i+1) + ": " + generalPurposeRegisters[i]);
+
+        System.out.println("Content of data memory: ");
+        System.out.println(dataMemory);
+        System.out.println("Content of instruction memory: ");
+        System.out.println(instructionMemory);
+    }
+
+    public void add(byte r1 ,byte valueOfR1, byte valueOfR2) {
+
         int result = valueOfR1 + valueOfR2;
         int oneByteResult = setStatusRegisters(result);
 
@@ -39,9 +89,8 @@ public class BasicComputer {
         generalPurposeRegisters[r1].setValue(oneByteResult);
     }
 
-    public void subtract(byte r1, byte r2) {
-        int valueOfR1 = generalPurposeRegisters[r1].getValue();
-        int valueOfR2 = generalPurposeRegisters[r2].getValue();
+    public void subtract(byte r1 ,byte valueOfR1, byte valueOfR2) {
+
         int result = valueOfR1 - valueOfR2;
         int oneByteResult = setStatusRegisters(result);
 
@@ -57,9 +106,7 @@ public class BasicComputer {
         generalPurposeRegisters[r1].setValue(oneByteResult);
     }
 
-    public void multiply(byte r1, byte r2) {
-        int valueOfR1 = generalPurposeRegisters[r1].getValue();
-        int valueOfR2 = generalPurposeRegisters[r2].getValue();
+    public void multiply(byte r1 ,byte valueOfR1, byte valueOfR2) {
         int result = valueOfR1 * valueOfR2;
         int oneByteResult = setStatusRegisters(result);
         generalPurposeRegisters[r1].setValue(oneByteResult);
@@ -106,7 +153,10 @@ public class BasicComputer {
             immediateUnsigned = ((immediate & 0xff)) - 192;
         else
             immediateUnsigned = immediate;
+
         MemoryWord[] memoryArray = dataMemory.getDataMemoryArray();
+        System.out.println("Memory block in address: " + immediate+
+                " was updated from " + memoryArray[immediate] + " to " + R1Value);
         memoryArray[immediateUnsigned].setValue(R1Value);
     }
 
@@ -119,8 +169,7 @@ public class BasicComputer {
             pc.setValue(pc.getValue() + immediate);
         }
     }
-    public void shiftLeftCircular(byte r1,byte immediate){
-        byte rVal=(byte)generalPurposeRegisters[r1].getValue() ;
+    public void shiftLeftCircular(byte r1, byte rVal ,byte immediate){
         int res=rVal<<immediate;
         //helper is the same rVal but in the first 8 bits of 32 bits of int to be able to circular shift them
         int helper=(rVal<<24)&0XFF000000;
@@ -142,8 +191,7 @@ public class BasicComputer {
 
 
     }
-    public void shiftRightCircular(byte r1,byte immediate){
-        byte r1Value=(byte)generalPurposeRegisters[r1].getValue() ;
+    public void shiftRightCircular(byte r1, byte r1Value ,byte immediate){
         int res=r1Value&0x000000FF;
         //helper will hold the values of right circular shifted bits at the left most bits of the 32 bits of int
         int helper=Integer.rotateRight(res,immediate);
@@ -163,9 +211,29 @@ public class BasicComputer {
 
     }
 
+
+    public void and(byte r1 ,byte valueOfR1, byte valueOfR2){
+        int result=valueOfR1&valueOfR2;
+        int oneByteResult=setStatusRegisters(result);
+        generalPurposeRegisters[r1].setValue(oneByteResult);
+    }
+    public void or(byte r1 ,byte valueOfR1, byte valueOfR2){
+        int result=valueOfR1|valueOfR2;
+        int oneByteResult=setStatusRegisters(result);
+        generalPurposeRegisters[r1].setValue(oneByteResult);
+    }
+    public void jumpRegister(byte valueOfR1, byte valueOfR2){
+        String binaryR1=Integer.toBinaryString(valueOfR1);
+        String binaryR2=Integer.toBinaryString(valueOfR2);
+        String stringRes=binaryR1+binaryR2;
+        int result=Integer.parseInt(stringRes, 2);
+        pc.setValue(result);
+    }
+
     public InstructionWord instructionFetch(){
         int nextAddress = pc.getValue();
         InstructionWord[] instructionMemoryArray = instructionMemory.getInstructionMemoryArray();
+        System.out.println("PC register was updated from " + pc.getValue() + "to " + (pc.getValue()+1));
         return instructionMemoryArray[nextAddress];//instruction to be fetched
     }
 
@@ -187,139 +255,62 @@ public class BasicComputer {
         return instructionFields;
     }
 
-    public void and(int r1,int r2){
-        int valueOfR1=generalPurposeRegisters[r1].getValue();
-        int valueOfR2=generalPurposeRegisters[r2].getValue();
-        int result=valueOfR1&valueOfR2;
-        int oneByteResult=setStatusRegisters(result);
-        generalPurposeRegisters[r1].setValue(oneByteResult);
-    }
-    public void or(int r1,int r2){
-        int valueOfR1=generalPurposeRegisters[r1].getValue();
-        int valueOfR2=generalPurposeRegisters[r2].getValue();
-        int result=valueOfR1|valueOfR2;
-        int oneByteResult=setStatusRegisters(result);
-        generalPurposeRegisters[r1].setValue(oneByteResult);
-    }
-    public void jumpRegister(int r1,int r2){
-        int valueOfR1=generalPurposeRegisters[r1].getValue();
-        int valueOfR2=generalPurposeRegisters[r2].getValue();
-        String binaryR1=Integer.toBinaryString(valueOfR1);
-        String binaryR2=Integer.toBinaryString(valueOfR2);
-        String stringRes=binaryR1+binaryR2;
-        int result=Integer.parseInt(stringRes, 2);
-        pc.setValue(result);
-    }
-
 
     public void execute(byte opcode, byte R1, byte R1Value, byte R2OrImmediateValue) {
+        Boolean[] statusRegisterBefore = new Boolean[8];
+        System.arraycopy(statusRegister.getFlags(),0,statusRegisterBefore, 0,8);
         switch (opcode) {
             case 0:
+                add(R1, R1Value, R2OrImmediateValue);
                 break;
             case 1:
+                subtract(R1, R1Value, R2OrImmediateValue);
                 break;
             case 2:
+                multiply(R1, R1Value, R2OrImmediateValue);
                 break;
             case 3:
+                loadImmediate(R1, R2OrImmediateValue);
                 break;
             case 4:
+                branchIfEqualZero(R1Value,R2OrImmediateValue);
                 break;
             case 5:
+                and(R1,R1Value,R2OrImmediateValue);
                 break;
             case 6:
+                or(R1,R1Value,R2OrImmediateValue);
                 break;
             case 7:
+                System.out.println("PC register was updated from " + pc.getValue());
+                jumpRegister(R1Value,R2OrImmediateValue);
+                System.out.print(" to " + pc.getValue());
                 break;
             case 8:
+                shiftLeftCircular(R1,R1Value,R2OrImmediateValue);
                 break;
             case 9:
-                shiftLeftCircular(R1,R2OrImmediateValue);
+                shiftRightCircular(R1,R1Value,R2OrImmediateValue);
                 break;
             case 10:
-                shiftRightCircular(R1,R2OrImmediateValue);
-                break;
-            case 11:
                 loadByte(R1, R2OrImmediateValue);
                 break;
-            case 12:
+            case 11:
                 storeByte(R1Value, R2OrImmediateValue);
                 break;
             default:
                 System.out.println("Invalid Opcode!");
-
         }
+        if(R1Value!=generalPurposeRegisters[R1].getValue())
+            System.out.println("Register " + R1 + " was updated from " + R1Value + " to" + generalPurposeRegisters[R1].getValue());
+
+        if(Arrays.equals(statusRegister.getFlags(), statusRegisterBefore))
+            System.out.println("Status Register was updated from " + Arrays.toString(statusRegisterBefore) +
+                    " to" + Arrays.toString(statusRegister.getFlags()));
     }
 
 
     public static void main(String[] args) {
-       // BasicComputer basicComputer = new BasicComputer();
-
-        //testing right circular
-        byte x=(byte) 150;
-        //int xx=x;
-        //System.out.println(Integer.toBinaryString(xx));
-
-        /*
-        int i=2;
-        byte r=(byte)(150);
-        int res=r&0x000000FF;
-        System.out.println(Integer.toBinaryString(res));
-        int helper=Integer.rotateRight(res,i);
-        System.out.println(Integer.toBinaryString(helper));
-        res=res<<(24-i);
-        System.out.println(Integer.toBinaryString(res));
-        res=res|helper;
-        res=res>>24;
-        res=res&0x000000FF;
-
-        System.out.println(Integer.toBinaryString(res));*/
-
-        //int helper=(r<<24)&0XFF000000;
-        //int helper=Integer.rotateRight(helper,i);
-        /*res=res|helper;
-        res=res&0x00FF;*/
-        //System.out.println(Integer.toBinaryString(r));
-        /*
-        System.out.println(Integer.toBinaryString(res));
-
-        System.out.println(Integer.toBinaryString(helper));
-
-        System.out.println(Integer.toBinaryString(helper));
-
-        System.out.println(Integer.toBinaryString(res));
-
-        System.out.println(Integer.toBinaryString(res));
-*/
-
-        /*System.out.println(Integer.toBinaryString(Integer.rotateRight(13,3)));
-
-        byte i=2;
-        int res=r&0XFF;
-
-
-
-        res = (int)(res<<i | res >> (32-i));
-        if (res > Byte.MAX_VALUE) {
-            res=res & 255;
-        }
-        System.out.println(Integer.toBinaryString(res));*/
-
-//        basicComputer.generalPurposeRegisters[0].setValue(10);
-//        basicComputer.generalPurposeRegisters[1].setValue(118);
-//        basicComputer.add((byte) 0, (byte) 1);
-//        System.out.println(basicComputer.generalPurposeRegisters[0].getValue());
-//        System.out.println(basicComputer.statusRegister.toString());
-        //   byte aByte = -31;
-
-        // int immediateUnsigned = 0;
-        // if(aByte<0)
-        //     immediateUnsigned = ((aByte & 0xff)) -192;
-        // else
-        //     immediateUnsigned = aByte;
-
-        // System.out.println(immediateUnsigned);
-        // }
-
 
     }
 }

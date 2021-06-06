@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 public class InstructionMemory {
     private static InstructionMemory instructionMemory;
     private InstructionWord[] instructionMemoryArray;
@@ -7,6 +9,13 @@ public class InstructionMemory {
             instructionMemoryArray[i] = new InstructionWord();
     }
 
+    public String toString()
+    {
+        String res = "";
+        for(int i=0; i<instructionMemoryArray.length; i++)
+            res += "Block " + i + instructionMemoryArray[i] + "\n";
+        return res;
+    }
 
     public InstructionWord[] getInstructionMemoryArray() {
         return instructionMemoryArray;

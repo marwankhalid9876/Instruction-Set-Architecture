@@ -24,6 +24,11 @@ public abstract class Register {
         return max;
     }
 
+    public String toString()
+    {
+        return getValue() + "";
+    }
+
     public static void main(String[] args) {
         System.out.println((byte)(255));
 
