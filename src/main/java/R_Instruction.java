@@ -3,7 +3,7 @@ public class R_Instruction extends InstructionWord{
 
     public String toString(){
         return super.toString()  +
-                ", R2=" + R2 +
+                ", R2=" + R2 +  ", isValid: " + super.isValid()+
                 '}';
     }
     public int getR2() {

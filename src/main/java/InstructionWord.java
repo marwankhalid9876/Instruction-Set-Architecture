@@ -2,6 +2,19 @@ public class InstructionWord {
 
     private byte opcode;
     private byte R1;
+    private boolean valid;
+
+    public InstructionWord(){
+        valid=false;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
+    }
 
     @Override
     public String toString() {

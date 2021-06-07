@@ -14,10 +14,9 @@ public class BasicComputer {
     private StatusRegister statusRegister;
     private GeneralPurposeRegister[] generalPurposeRegisters;
     private int cycle;
-    private InstructionWord oldFetched;
-    private InstructionWord newFetched;
-    private byte[] oldDecoded;
-    private byte[] newDecoded;
+    private InstructionWord fetched;
+    private byte[] decoded;
+    private InstructionWord toBeExecuted;
 
 
 
@@ -34,41 +33,44 @@ public class BasicComputer {
 
 
     public void pipeline(int numberOfCycles){
-        while (cycle<=numberOfCycles)
+        while (true)
         {
             System.out.println("Clock cycle number: " + cycle);
-
-           if(oldDecoded!=null)
+           if(decoded!=null)
            {
-               System.out.println("Instruction to be executed: Instruction " + (cycle-2));
-               execute(oldDecoded[0],oldDecoded[1],oldDecoded[2],oldDecoded[3]);
+               System.out.println("Instruction to be executed: " + getInstruction(toBeExecuted));
+               execute(decoded[0],decoded[1],decoded[2],decoded[3]);
+               if(decoded[0]==7)
+               {
+                   decoded=null;
+                   fetched=null;
+               }
            }
 
-            if(oldFetched!=null)
-            {
-                System.out.println("Instruction to be decoded: Instruction " + (cycle-1));
-                newDecoded = instructionDecode(oldFetched);
-            }
-            else
-                newDecoded=null;
 
-            if(cycle<numberOfCycles-1)
-            {
+           decoded = instructionDecode(fetched);
+           toBeExecuted = fetched;//keeping track of fetched to print it when executing
+           if(decoded!=null)
+               System.out.println("Instruction to be decoded: " + getInstruction(fetched));
 
-                System.out.println("Instruction to be fetched: Instruction " + cycle);
-                newFetched = instructionFetch();
-            }
-            else
-                newFetched=null;
-           oldFetched=newFetched;
-           oldDecoded=newDecoded;
-           cycle++;
-            System.out.println("--------------");
+
+
+            fetched = instructionFetch();
+            if(fetched.isValid())
+                System.out.println("Instruction to be fetched: " + getInstruction(fetched));
+
+
+
+            cycle++;
+           System.out.println("--------------");
+           if(!fetched.isValid() && decoded==null)
+               break;
 
         }
         System.out.println("PROGRAM EXECUTION DONE!");
         System.out.println("======================================");
-        System.out.println("Content of PC register: " + pc.toString());
+        System.out.println("Content" +
+                " of PC register: " + pc.toString());
         System.out.println("Content of Status registers: " + statusRegister.toString());
         System.out.println("Content of general purpose registers: ");
         for(int i=0; i<generalPurposeRegisters.length; i++)
@@ -78,6 +80,43 @@ public class BasicComputer {
         System.out.println(dataMemory);
         System.out.println("Content of instruction memory: ");
         System.out.println(instructionMemory);
+    }
+    public static String getInstruction(InstructionWord instruction)
+    {
+        String res = "";
+        switch (instruction.getOpcode())
+        {
+            case 0:
+                res+= "ADD"; break;
+            case 1:
+                res+= "SUB"; break;
+            case 2:
+                res+= "MUL"; break;
+            case 3:
+                res+= "LDI"; break;
+            case 4:
+                res+= "BEQZ"; break;
+            case 5:
+                res+= "AND"; break;
+            case 6:
+                res+= "OR"; break;
+            case 7:
+                res+= "JR"; break;
+            case 8:
+                res+= "SLC"; break;
+            case 9:
+                res+= "SRC"; break;
+            case 10:
+                res+= "LB"; break;
+            case 11:
+                res+= "SB"; break;
+        }
+        res+= " R" + instruction.getR1() + " ";
+        if(instruction instanceof I_Instruction)
+            res+= ((I_Instruction) instruction).getImmediate();
+        else
+            res+= "R"+((R_Instruction) instruction).getR2();
+        return res;
     }
 
     public void add(byte r1 ,byte valueOfR1, byte valueOfR2) {
@@ -241,11 +280,15 @@ public class BasicComputer {
     public InstructionWord instructionFetch(){
         int nextAddress = pc.getValue();
         InstructionWord[] instructionMemoryArray = instructionMemory.getInstructionMemoryArray();
+        if(instructionMemoryArray[nextAddress]==null)//if my program finished
+            return null;
         return instructionMemoryArray[nextAddress];//instruction to be fetched
     }
 
     public byte[] instructionDecode(InstructionWord instruction){
 
+        if(instruction==null || !(instruction.isValid()))
+            return null;
         System.out.println("PC register was updated from " + pc.getValue() + " to " + (pc.getValue()+1));
         pc.setValue(pc.getValue()+1);//word-addressable
         byte[] instructionFields = new byte[4];
@@ -270,6 +313,7 @@ public class BasicComputer {
 
 
     public void execute(byte opcode, byte R1, byte R1Value, byte R2OrImmediateValue) {
+
         Boolean[] statusRegisterBefore = new Boolean[8];
         System.arraycopy(statusRegister.getFlags(),0,statusRegisterBefore, 0,8);
         switch (opcode) {
@@ -295,9 +339,9 @@ public class BasicComputer {
                 or(R1,R1Value,R2OrImmediateValue);
                 break;
             case 7:
-                System.out.println("PC register was updated from " + pc.getValue());
+                System.out.print("PC register was updated from " + pc.getValue());
                 jumpRegister(R1Value,R2OrImmediateValue);
-                System.out.print(" to " + pc.getValue());
+                System.out.println(" to " + pc.getValue());
                 break;
             case 8:
                 shiftLeftCircular(R1,R1Value,R2OrImmediateValue);
@@ -347,6 +391,7 @@ public class BasicComputer {
                     case "ADD":
                         instruction = new R_Instruction();
                         instruction.setOpcode((byte)0);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2).substring(1);
                         instruction.setR1(Byte.parseByte(R1));
@@ -355,6 +400,7 @@ public class BasicComputer {
                     case "SUB":
                         instruction = new R_Instruction();
                         instruction.setOpcode((byte)1);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2).substring(1);
                         instruction.setR1(Byte.parseByte(R1));
@@ -363,6 +409,7 @@ public class BasicComputer {
                     case "MUL":
                         instruction = new R_Instruction();
                         instruction.setOpcode((byte)2);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2).substring(1);
                         instruction.setR1(Byte.parseByte(R1));
@@ -371,6 +418,7 @@ public class BasicComputer {
                     case "LDI":
                         instruction = new I_Instruction();
                         instruction.setOpcode((byte)3);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2);
                         instruction.setR1(Byte.parseByte(R1));
@@ -379,6 +427,7 @@ public class BasicComputer {
                     case "BEQZ":
                         instruction = new I_Instruction();
                         instruction.setOpcode((byte)4);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2);
                         instruction.setR1(Byte.parseByte(R1));
@@ -387,6 +436,7 @@ public class BasicComputer {
                     case "AND":
                         instruction = new R_Instruction();
                         instruction.setOpcode((byte)5);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2).substring(1);
                         instruction.setR1(Byte.parseByte(R1));
@@ -395,6 +445,7 @@ public class BasicComputer {
                     case "OR":
                         instruction = new R_Instruction();
                         instruction.setOpcode((byte)6);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2).substring(1);
                         instruction.setR1(Byte.parseByte(R1));
@@ -403,6 +454,7 @@ public class BasicComputer {
                     case "JR":
                         instruction = new R_Instruction();
                         instruction.setOpcode((byte)7);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2).substring(1);
                         instruction.setR1(Byte.parseByte(R1));
@@ -411,6 +463,7 @@ public class BasicComputer {
                     case "SLC":
                         instruction = new I_Instruction();
                         instruction.setOpcode((byte)8);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2);
                         instruction.setR1(Byte.parseByte(R1));
@@ -419,6 +472,7 @@ public class BasicComputer {
                     case "SRC":
                         instruction = new I_Instruction();
                         instruction.setOpcode((byte)9);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2);
                         instruction.setR1(Byte.parseByte(R1));
@@ -427,6 +481,7 @@ public class BasicComputer {
                     case "LB":
                         instruction = new I_Instruction();
                         instruction.setOpcode((byte)10);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2);
                         instruction.setR1(Byte.parseByte(R1));
@@ -435,6 +490,7 @@ public class BasicComputer {
                     case "SB":
                         instruction = new I_Instruction();
                         instruction.setOpcode((byte)11);
+                        instruction.setValid(true);
                         R1 = lineTokenizer.get(1).substring(1);
                         R2OrImmediate = lineTokenizer.get(2);
                         instruction.setR1(Byte.parseByte(R1));

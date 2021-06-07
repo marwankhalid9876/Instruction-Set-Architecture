@@ -8,7 +8,7 @@ public class I_Instruction extends InstructionWord{
     @Override
     public String toString() {
         return super.toString()  +
-                ", immediate=" + immediate +
+                ", immediate=" + immediate + ", isValid: " + super.isValid()+
                 '}';
     }
 
