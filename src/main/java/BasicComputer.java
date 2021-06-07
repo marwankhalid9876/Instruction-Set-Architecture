@@ -270,6 +270,8 @@ public class BasicComputer {
         generalPurposeRegisters[r1].setValue(oneByteResult);
     }
     public void jumpRegister(byte valueOfR1, byte valueOfR2){
+
+
         String binaryR1=Integer.toBinaryString(valueOfR1);
         String binaryR2=Integer.toBinaryString(valueOfR2);
         String stringRes=binaryR1+binaryR2;
