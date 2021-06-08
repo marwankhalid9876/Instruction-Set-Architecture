@@ -12,9 +12,9 @@ public class I_Instruction extends InstructionWord{
                 '}';
     }
 
-    public void setImmediate(byte immediate) {
+    public void setImmediate(byte immediate) throws Exception {
         if(immediate>31 || immediate<-32)
-            System.out.println("Invalid immediate value!");
+            throw new Exception("Invalid immediate number! Your immediate number must be between -32 and 31 inclusive");
         else
             this.immediate = immediate;
     }

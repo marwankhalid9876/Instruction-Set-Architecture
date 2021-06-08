@@ -10,9 +10,9 @@ public class R_Instruction extends InstructionWord{
         return R2;
     }
 
-    public void setR2(int r2) {
+    public void setR2(int r2) throws Exception {
         if(R2>63 || R2<0)
-            System.out.println("Invalid Register R2 number");
+            throw new Exception("Invalid Register number! Your register number must be between 0 and 63 inclusive");
         else
             R2 = r2;
     }
