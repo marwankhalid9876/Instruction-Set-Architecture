@@ -40,8 +40,9 @@ public class BasicComputer {
            {
                System.out.println("Instruction to be executed: " + getInstruction(toBeExecuted));
                execute(decoded[0],decoded[1],decoded[2],decoded[3]);
-               if(decoded[0]==7)
+               if(decoded[0]==7 || decoded[0]==4)
                {
+                   //if the instruction to be decoded is JR or BEQZ, ignore the fetched instruction
                    decoded=null;
                    fetched=null;
                }
@@ -363,14 +364,13 @@ public class BasicComputer {
         if(R1Value!=generalPurposeRegisters[R1].getValue())
             System.out.println("Register " + R1 + " was updated from " + R1Value + " to " + generalPurposeRegisters[R1].getValue());
 
-        if(Arrays.equals(statusRegister.getFlags(), statusRegisterBefore))
+        if(!Arrays.equals(statusRegister.getFlags(), statusRegisterBefore))
             System.out.println("Status Register was updated from " + Arrays.toString(statusRegisterBefore) +
                     " to " + Arrays.toString(statusRegister.getFlags()));
     }
 
 
-    public int parse(String path)
-    {
+    public int parse(String path) throws Exception {
         int numberOfInstructions=0;
         try {
             File file = new File(path);
@@ -383,12 +383,14 @@ public class BasicComputer {
             while ((line = br.readLine()) != null) {
                 Vector<String> lineTokenizer = new Vector<>();
                 StringTokenizer st = new StringTokenizer(line," ");
-                // now I have each line in a vector
                 InstructionWord instruction = null;
                 String R1;
                 String R2OrImmediate;
                 while(st.hasMoreTokens())
                     lineTokenizer.add(st.nextToken());
+                if(lineTokenizer.size()==0)
+                    continue;
+                // now I have each line in a vector
                 switch(lineTokenizer.get(0)) {
                     case "ADD":
                         instruction = new R_Instruction();
@@ -511,8 +513,7 @@ public class BasicComputer {
         return 3+((numberOfInstructions-1)*1);
     }
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws Exception {
         BasicComputer basicComputer = new BasicComputer();
         int numberOfCycles = basicComputer.parse("Program 1.txt");
         basicComputer.pipeline(numberOfCycles);
