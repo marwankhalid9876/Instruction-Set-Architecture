@@ -40,12 +40,6 @@ public class BasicComputer {
            {
                System.out.println("Instruction to be executed: " + getInstruction(toBeExecuted));
                execute(decoded[0],decoded[1],decoded[2],decoded[3]);
-               if(decoded[0]==7 || decoded[0]==4)
-               {
-                   //if the instruction to be decoded is JR or BEQZ, ignore the fetched instruction
-                   decoded=null;
-                   fetched=null;
-               }
            }
 
 
@@ -214,7 +208,11 @@ public class BasicComputer {
 
     public void branchIfEqualZero(byte r1Value, byte immediate){
         if(r1Value == 0){
-            pc.setValue(pc.getValue() + immediate);
+            pc.setValue(pc.getValue() + immediate + 1);
+            //if I am branching, ignore the instructions that were fetched and decoded
+            decoded=null;
+            fetched=null;
+
         }
     }
     public void shiftLeftCircular(byte r1, byte rVal ,byte immediate){
@@ -278,6 +276,10 @@ public class BasicComputer {
         String stringRes=binaryR1+binaryR2;
         int result=Integer.parseInt(stringRes, 2);
         pc.setValue(result);
+        //ignore what will bew fetched and decoded because I will jump
+        decoded=null;
+        fetched=null;
+
     }
 
     public InstructionWord instructionFetch(){

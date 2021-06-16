@@ -7,7 +7,6 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="CA" />
-        <module name="Instruction-Set-Architecture" />
       </profile>
     </annotationProcessing>
   </component>
