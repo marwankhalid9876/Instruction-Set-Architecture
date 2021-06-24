@@ -517,6 +517,7 @@ public class BasicComputer {
 
     public static void main(String[] args) throws Exception {
         BasicComputer basicComputer = new BasicComputer();
+        basicComputer.parse("Program 1.txt");
         basicComputer.pipeline();
     }
 }
