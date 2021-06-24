@@ -32,7 +32,7 @@ public class BasicComputer {
     }
 
 
-    public void pipeline(int numberOfCycles){
+    public void pipeline(){
         while (true)
         {
             System.out.println("Clock cycle number: " + cycle);
@@ -517,7 +517,6 @@ public class BasicComputer {
 
     public static void main(String[] args) throws Exception {
         BasicComputer basicComputer = new BasicComputer();
-        int numberOfCycles = basicComputer.parse("Program 1.txt");
-        basicComputer.pipeline(numberOfCycles);
+        basicComputer.pipeline();
     }
 }
