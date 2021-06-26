@@ -390,7 +390,7 @@ public class BasicComputer {
                 String R2OrImmediate;
                 while(st.hasMoreTokens())
                     lineTokenizer.add(st.nextToken());
-                if(lineTokenizer.size()==0)
+                if(lineTokenizer.size()==0 || lineTokenizer.get(0).charAt(0)=='-')//to handle empty lines or comments
                     continue;
                 // now I have each line in a vector
                 switch(lineTokenizer.get(0)) {
